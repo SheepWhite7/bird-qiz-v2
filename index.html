@@ -117,12 +117,12 @@
   <section id="home">
     <div class="home-icon">🐦</div>
     <h1>测测你是哪种小鸟</h1>
-    <p class="subtitle">25道题 · 32种小鸟 · 找到你的那一只</p>
+    <p class="subtitle">20道题 · 32种小鸟 · 找到你的那一只</p>
     <p class="desc">凭第一直觉作答，别想太多。每一种小鸟都有自己的生存哲学，没有哪种更好，只有哪种更像你。</p>
     <button class="btn" onclick="startQuiz()">开始测试</button>
     <div class="home-meta">
       <span>📱 手机适配</span>
-      <span>⚡ 约 3 分钟</span>
+      <span>⚡ 约 2 分钟</span>
     </div>
   </section>
 
@@ -130,7 +130,7 @@
   <section id="quiz">
     <div class="progress-wrap">
       <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
-      <div class="progress-text" id="progressText">1 / 25</div>
+      <div class="progress-text" id="progressText">1 / 20</div>
     </div>
     <div class="question-card" id="questionCard">
       <div class="q-number" id="qNumber">第 1 题</div>
@@ -162,7 +162,7 @@
 </div>
 
 <script>
-// ===== 题目数据 =====
+// ===== 题目数据（20题版） =====
 const questions = [
   { q: "周末突然空出一天，你最想怎么过？", opts: [
     { l: "A", t: "约一群朋友出门，人多才热闹" },
@@ -278,36 +278,6 @@ const questions = [
     { l: "C", t: "会在重复里找小变化" },
     { l: "D", t: "看心情，有时候享受有时候烦" }
   ]},
-  { q: "你更害怕哪种处境？", opts: [
-    { l: "A", t: "无聊，没事干" },
-    { l: "B", t: "失控，计划被打乱" },
-    { l: "C", t: "被束缚，没自由" },
-    { l: "D", t: "被忽视，没人理" }
-  ]},
-  { q: "你的\"觅食\"风格更像？", opts: [
-    { l: "A", t: "走到哪吃到哪，随遇而安" },
-    { l: "B", t: "有固定的几家店，轮着吃" },
-    { l: "C", t: "愿意为一口好吃的跑很远" },
-    { l: "D", t: "看别人推荐，跟着去" }
-  ]},
-  { q: "你对季节变化的感觉是？", opts: [
-    { l: "A", t: "喜欢换季，有新鲜感" },
-    { l: "B", t: "无所谓，都一样过" },
-    { l: "C", t: "会跟着季节调整生活节奏" },
-    { l: "D", t: "讨厌换季，麻烦" }
-  ]},
-  { q: "朋友找你帮忙，你通常？", opts: [
-    { l: "A", t: "能帮就帮，不太会拒绝" },
-    { l: "B", t: "先问清楚再答应" },
-    { l: "C", t: "看关系远近" },
-    { l: "D", t: "尽量不揽事" }
-  ]},
-  { q: "你觉得自己更像哪种\"飞行风格\"？", opts: [
-    { l: "A", t: "飞得高，看得远" },
-    { l: "B", t: "飞得稳，不冒险" },
-    { l: "C", t: "飞得灵活，随时转向" },
-    { l: "D", t: "飞得低，贴着地面走" }
-  ]},
   { q: "最后一题：你希望别人记住你的什么？", opts: [
     { l: "A", t: "跟你在一起很开心" },
     { l: "B", t: "你是个靠得住的人" },
@@ -396,7 +366,7 @@ const birdDB = {
 
 // ===== 状态 =====
 let currentQ = 0;
-let answers = new Array(25).fill(null);
+let answers = new Array(20).fill(null);
 let finalBird = null;
 
 // ===== 页面切换 =====
@@ -410,7 +380,7 @@ function showPage(id) {
 
 function startQuiz() {
   currentQ = 0;
-  answers = new Array(25).fill(null);
+  answers = new Array(20).fill(null);
   showPage('quiz');
   renderQuestion();
 }
@@ -480,21 +450,21 @@ function calcResult() {
     if (counts[l] > maxCount) { maxCount = counts[l]; maxLetter = l; }
   });
 
-  // 处理并列（看第25题选了啥）
+  // 处理并列（看最后一题，即第20题，索引19）
   const tieLetters = ['A', 'B', 'C', 'D'].filter(l => counts[l] === maxCount);
   if (tieLetters.length > 1) {
-    const q25 = answers[24];
-    if (q25 && tieLetters.includes(q25)) {
-      maxLetter = q25;
+    const qLast = answers[19]; // 第20题
+    if (qLast && tieLetters.includes(qLast)) {
+      maxLetter = qLast;
     }
   }
 
-  // 根据第3题(索引2)和第22题(索引21)决定后缀，直接对应 A/B/C/D
+  // 根据第3题(索引2)和第12题(索引11)决定后缀，直接对应 A/B/C/D
   const q3 = answers[2] || 'A';
-  const q22 = answers[21] || 'A';
+  const q12 = answers[11] || 'A';
   
   const suffix1 = q3; // A, B, C, D
-  const suffix2 = q22; // A, B, C, D
+  const suffix2 = q12; // A, B, C, D
 
   const key = `${maxLetter}_${suffix1}${suffix2}`;
   return birdDB[key] || birdDB["A_AA"]; // 兜底
