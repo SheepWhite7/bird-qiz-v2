@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>测测你是哪种小鸟</title>
+  <style>
+    :root {
+      --bg: #f7f5f0;
+      --card: #ffffff;
+      --text: #2c2c2c;
+      --text-light: #6b6b6b;
+      --accent: #3a7d5c;
+      --accent-light: #e8f0eb;
+      --border: #e0ddd6;
+      --shadow: 0 2px 12px rgba(0,0,0,0.06);
+      --radius: 16px;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html { font-size: 16px; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+      padding: 0 16px 40px;
+      -webkit-font-smoothing: antialiased;
+    }
+    .container { max-width: 560px; margin: 0 auto; }
+
+    /* ===== 首页 ===== */
+    #home { padding-top: 48px; text-align: center; }
+    .home-icon { font-size: 64px; line-height: 1; margin-bottom: 16px; }
+    h1 { font-size: 28px; font-weight: 700; letter-spacing: 1px; margin-bottom: 8px; color: var(--accent); }
+    .subtitle { font-size: 15px; color: var(--text-light); margin-bottom: 8px; }
+    .desc { font-size: 14px; color: var(--text-light); margin-bottom: 32px; padding: 0 8px; }
+    .btn {
+      display: inline-block; width: 100%; padding: 16px 24px;
+      background: var(--accent); color: #fff; border: none; border-radius: var(--radius);
+      font-size: 17px; font-weight: 600; cursor: pointer; transition: opacity .2s;
+      letter-spacing: 2px;
+    }
+    .btn:active { opacity: .8; }
+    .btn-secondary {
+      background: transparent; color: var(--accent); border: 1.5px solid var(--accent);
+    }
+    .home-meta { margin-top: 24px; font-size: 13px; color: var(--text-light); }
+    .home-meta span { display: inline-block; margin: 0 8px; }
+
+    /* ===== 答题页 ===== */
+    #quiz { display: none; padding-top: 20px; }
+    .progress-wrap { position: sticky; top: 0; background: var(--bg); padding: 12px 0 16px; z-index: 10; }
+    .progress-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+    .progress-fill { height: 100%; background: var(--accent); border-radius: 3px; transition: width .3s ease; width: 0%; }
+    .progress-text { font-size: 13px; color: var(--text-light); text-align: right; margin-top: 6px; }
+    .question-card {
+      background: var(--card); border-radius: var(--radius); padding: 24px 20px;
+      box-shadow: var(--shadow); margin-bottom: 16px;
+    }
+    .q-number { font-size: 13px; color: var(--accent); font-weight: 600; margin-bottom: 8px; letter-spacing: 1px; }
+    .q-text { font-size: 18px; font-weight: 600; margin-bottom: 20px; line-height: 1.5; }
+    .option {
+      display: block; width: 100%; text-align: left; padding: 14px 16px;
+      background: var(--bg); border: 1.5px solid var(--border); border-radius: 12px;
+      font-size: 15px; color: var(--text); margin-bottom: 10px; cursor: pointer;
+      transition: all .15s; font-family: inherit; line-height: 1.5;
+    }
+    .option:active { transform: scale(.98); }
+    .option.selected { border-color: var(--accent); background: var(--accent-light); font-weight: 600; }
+    .option .opt-letter {
+      display: inline-block; width: 24px; height: 24px; line-height: 24px;
+      text-align: center; border-radius: 50%; background: var(--border);
+      font-size: 13px; font-weight: 700; margin-right: 10px; color: var(--text-light);
+      vertical-align: middle;
+    }
+    .option.selected .opt-letter { background: var(--accent); color: #fff; }
+    .nav-btns { display: flex; gap: 12px; margin-top: 8px; }
+    .nav-btns .btn { flex: 1; padding: 14px; font-size: 16px; letter-spacing: 1px; }
+    .btn:disabled { opacity: .35; cursor: not-allowed; }
+
+    /* ===== 结果页 ===== */
+    #result { display: none; padding-top: 32px; }
+    .result-card {
+      background: var(--card); border-radius: var(--radius); padding: 32px 24px;
+      box-shadow: var(--shadow); text-align: center; margin-bottom: 20px;
+    }
+    .bird-emoji { font-size: 72px; line-height: 1; margin-bottom: 12px; }
+    .result-label { font-size: 13px; color: var(--text-light); letter-spacing: 2px; margin-bottom: 6px; }
+    .bird-name { font-size: 26px; font-weight: 700; color: var(--accent); margin-bottom: 16px; letter-spacing: 1px; }
+    .bird-desc { font-size: 15px; color: var(--text); line-height: 1.8; text-align: left; padding: 0 4px; }
+    .result-tags { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 20px; }
+    .tag { font-size: 12px; padding: 6px 12px; background: var(--accent-light); color: var(--accent); border-radius: 20px; font-weight: 500; }
+    .actions { display: flex; flex-direction: column; gap: 12px; margin-top: 8px; }
+    .actions .btn { padding: 15px; font-size: 16px; }
+
+    /* ===== 页脚 ===== */
+    .footer { text-align: center; font-size: 12px; color: var(--text-light); margin-top: 32px; padding: 16px 0; }
+
+    /* ===== 淡入动画 ===== */
+    .fade-in { animation: fadeIn .35s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ===== 小屏适配 ===== */
+    @media (max-width: 380px) {
+      h1 { font-size: 24px; }
+      .q-text { font-size: 16px; }
+      .option { font-size: 14px; padding: 12px 14px; }
+      .bird-name { font-size: 22px; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- ===== 首页 ===== -->
+  <section id="home">
+    <div class="home-icon">🐦</div>
+    <h1>测测你是哪种小鸟</h1>
+    <p class="subtitle">25道题 · 30种小鸟 · 找到你的那一只</p>
+    <p class="desc">凭第一直觉作答，别想太多。每种小鸟都有自己的活法，没有哪种更好。</p>
+    <button class="btn" onclick="startQuiz()">开始测试</button>
+    <div class="home-meta">
+      <span>📱 手机适配</span>
+      <span>⚡ 约 3 分钟</span>
+    </div>
+  </section>
+
+  <!-- ===== 答题页 ===== -->
+  <section id="quiz">
+    <div class="progress-wrap">
+      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="progress-text" id="progressText">1 / 25</div>
+    </div>
+    <div class="question-card" id="questionCard">
+      <div class="q-number" id="qNumber">第 1 题</div>
+      <div class="q-text" id="qText"></div>
+      <div id="optionsWrap"></div>
+    </div>
+    <div class="nav-btns">
+      <button class="btn btn-secondary" id="prevBtn" onclick="prevQuestion()">上一题</button>
+      <button class="btn" id="nextBtn" onclick="nextQuestion()">下一题</button>
+    </div>
+  </section>
+
+  <!-- ===== 结果页 ===== -->
+  <section id="result">
+    <div class="result-card">
+      <div class="bird-emoji" id="birdEmoji">🐦</div>
+      <div class="result-label">你 是</div>
+      <div class="bird-name" id="birdName"></div>
+      <div class="bird-desc" id="birdDesc"></div>
+      <div class="result-tags" id="resultTags"></div>
+    </div>
+    <div class="actions">
+      <button class="btn" onclick="restart()">再测一次</button>
+      <button class="btn btn-secondary" onclick="shareResult()">分享结果</button>
+    </div>
+    <div class="footer">仅供娱乐 · 每一种小鸟都有自己的活法</div>
+  </section>
+
+</div>
+
+<script>
+// ===== 题目数据 =====
+const questions = [
+  { q: "周末突然空出一天，你最想怎么过？", opts: [
+    { l: "A", t: "约一群朋友出门，人多才热闹" },
+    { l: "B", t: "一个人待着，做点自己的事" },
+    { l: "C", t: "去个没去过的地方探探路" },
+    { l: "D", t: "把攒着的杂事一件件收拾完" }
+  ]},
+  { q: "朋友遇到麻烦找你倾诉，你的第一反应是？", opts: [
+    { l: "A", t: "立刻问\"需要我过来吗\"" },
+    { l: "B", t: "安静听完，再帮ta理思路" },
+    { l: "C", t: "讲个笑话先把气氛缓下来" },
+    { l: "D", t: "直接说\"你打算怎么办\"" }
+  ]},
+  { q: "吃饭这件事，你更像？", opts: [
+    { l: "A", t: "什么都愿意尝，来者不拒" },
+    { l: "B", t: "有几样特别爱的，反复吃也不腻" },
+    { l: "C", t: "为了健康会刻意搭配" },
+    { l: "D", t: "忙起来随便对付，闲下来认真做" }
+  ]},
+  { q: "你在一个陌生场合里通常？", opts: [
+    { l: "A", t: "很快就能跟人聊起来" },
+    { l: "B", t: "先观察一圈，找到舒服的人再开口" },
+    { l: "C", t: "找个角落待着，等别人来找我" },
+    { l: "D", t: "主动组局，把大家拉到一起" }
+  ]},
+  { q: "面对一个长期目标，你的态度是？", opts: [
+    { l: "A", t: "定了就死磕，不完成难受" },
+    { l: "B", t: "边走边看，随时调整方向" },
+    { l: "C", t: "更在意过程中的体验" },
+    { l: "D", t: "会算清楚投入产出比再决定" }
+  ]},
+  { q: "你出门旅行，行李风格是？", opts: [
+    { l: "A", t: "极简，一个包就走" },
+    { l: "B", t: "该带的都带，有备无患" },
+    { l: "C", t: "看目的地，可能会带很多\"可能用得上\"的" },
+    { l: "D", t: "到了再买，懒得背" }
+  ]},
+  { q: "别人形容你，最可能用哪个词？", opts: [
+    { l: "A", t: "热闹" },
+    { l: "B", t: "靠谱" },
+    { l: "C", t: "有趣" },
+    { l: "D", t: "独立" }
+  ]},
+  { q: "你对\"家\"的执念有多深？", opts: [
+    { l: "A", t: "必须有个固定的窝，不然不安心" },
+    { l: "B", t: "家人在哪家就在哪" },
+    { l: "C", t: "四海为家，哪里舒服哪里待" },
+    { l: "D", t: "有个睡觉的地方就行" }
+  ]},
+  { q: "遇到不公平的事，你会？", opts: [
+    { l: "A", t: "当场就说出来" },
+    { l: "B", t: "记下来，找合适的时机处理" },
+    { l: "C", t: "算了，懒得纠缠" },
+    { l: "D", t: "看对方是谁再决定" }
+  ]},
+  { q: "你学新东西的方式更接近？", opts: [
+    { l: "A", t: "直接上手试，错了再改" },
+    { l: "B", t: "先看别人怎么做，再模仿" },
+    { l: "C", t: "自己翻资料，搞明白原理" },
+    { l: "D", t: "找人教，互动学得快" }
+  ]},
+  { q: "哪个场景让你最舒服？", opts: [
+    { l: "A", t: "热闹的聚餐" },
+    { l: "B", t: "安静的午后看书" },
+    { l: "C", t: "户外走走看看" },
+    { l: "D", t: "在家收拾整理" }
+  ]},
+  { q: "你对\"按计划行事\"的态度是？", opts: [
+    { l: "A", t: "计划是底线，尽量不打破" },
+    { l: "B", t: "有计划，但可以灵活变" },
+    { l: "C", t: "计划赶不上变化，随缘" },
+    { l: "D", t: "看什么事，重要的事一定按计划" }
+  ]},
+  { q: "朋友说你最让人受不了的一点可能是？", opts: [
+    { l: "A", t: "太吵" },
+    { l: "B", t: "太较真" },
+    { l: "C", t: "太飘忽" },
+    { l: "D", t: "太冷淡" }
+  ]},
+  { q: "你更愿意把时间花在？", opts: [
+    { l: "A", t: "认识新朋友" },
+    { l: "B", t: "维护老朋友" },
+    { l: "C", t: "自己待着" },
+    { l: "D", t: "做具体的事" }
+  ]},
+  { q: "面对美食，你的自控力？", opts: [
+    { l: "A", t: "几乎没有，先吃了再说" },
+    { l: "B", t: "还行，但遇到特别爱的会破功" },
+    { l: "C", t: "很强，说停就停" },
+    { l: "D", t: "看心情" }
+  ]},
+  { q: "你更喜欢哪种工作节奏？", opts: [
+    { l: "A", t: "快节奏，多任务并行" },
+    { l: "B", t: "稳扎稳打，一件件来" },
+    { l: "C", t: "自由安排，不受约束" },
+    { l: "D", t: "有明确目标和节点" }
+  ]},
+  { q: "如果可以选择，你想住在？", opts: [
+    { l: "A", t: "市中心，什么都方便" },
+    { l: "B", t: "安静的小区，邻里熟悉" },
+    { l: "C", t: "靠近自然的地方" },
+    { l: "D", t: "哪里都行，随时能搬" }
+  ]},
+  { q: "别人夸你，你更在意哪句？", opts: [
+    { l: "A", t: "\"你真好相处\"" },
+    { l: "B", t: "\"你真靠谱\"" },
+    { l: "C", t: "\"你真有想法\"" },
+    { l: "D", t: "\"你活得真自在\"" }
+  ]},
+  { q: "你对待\"重复日常\"的态度是？", opts: [
+    { l: "A", t: "受不了，总想找点新鲜的" },
+    { l: "B", t: "习惯了就还好，安稳最重要" },
+    { l: "C", t: "会在重复里找小变化" },
+    { l: "D", t: "看心情，有时候享受有时候烦" }
+  ]},
+  { q: "你更害怕哪种处境？", opts: [
+    { l: "A", t: "无聊，没事干" },
+    { l: "B", t: "失控，计划被打乱" },
+    { l: "C", t: "被束缚，没自由" },
+    { l: "D", t: "被忽视，没人理" }
+  ]},
+  { q: "你的\"觅食\"风格更像？", opts: [
+    { l: "A", t: "走到哪吃到哪，随遇而安" },
+    { l: "B", t: "有固定的几家店，轮着吃" },
+    { l: "C", t: "愿意为一口好吃的跑很远" },
+    { l: "D", t: "看别人推荐，跟着去" }
+  ]},
+  { q: "你对季节变化的感觉是？", opts: [
+    { l: "A", t: "喜欢换季，有新鲜感" },
+    { l: "B", t: "无所谓，都一样过" },
+    { l: "C", t: "会跟着季节调整生活节奏" },
+    { l: "D", t: "讨厌换季，麻烦" }
+  ]},
+  { q: "朋友找你帮忙，你通常？", opts: [
+    { l: "A", t: "能帮就帮，不太会拒绝" },
+    { l: "B", t: "先问清楚再答应" },
+    { l: "C", t: "看关系远近" },
+    { l: "D", t: "尽量不揽事" }
+  ]},
+  { q: "你觉得自己更像哪种\"飞行风格\"？", opts: [
+    { l: "A", t: "飞得高，看得远" },
+    { l: "B", t: "飞得稳，不冒险" },
+    { l: "C", t: "飞得灵活，随时转向" },
+    { l: "D", t: "飞得低，贴着地面走" }
+  ]},
+  { q: "最后一题：你希望别人记住你的什么？", opts: [
+    { l: "A", t: "跟你在一起很开心" },
+    { l: "B", t: "你是个靠得住的人" },
+    { l: "C", t: "你很有自己的样子" },
+    { l: "D", t: "你来过，留下了点什么" }
+  ]}
+];
+
+// ===== 小鸟结果库（30种） =====
+const birdDB = {
+  "A_AA": { name: "树麻雀", emoji: "🐦", desc: "集群、杂食、与人共居，走到哪都能活。你是那种扔进任何饭局都能迅速融入的人，不挑环境、不挑话题，热闹是刚需，但你也懂得在人群里给自己留个位置。", tags: ["社交型", "杂食", "适应力强"] },
+  "A_AB": { name: "白头鹎", emoji: "🐦", desc: "南方城市最常见的\"土著\"之一，荤素皆宜，叫声响亮，适应力极强。你不排斥变化，但也不需要靠迁徙证明什么，在熟悉的地盘上就能把日子过得有声有色。", tags: ["社交型", "留鸟", "城市生活"] },
+  "A_BA": { name: "金丝雀", emoji: "🐦", desc: "叫声清亮，偏好稳定食物来源，被人喜爱也保持自己的节奏。你有点\"挑\"，但这种挑不是矫情，而是知道什么让自己舒服，并且愿意为此守住一套生活秩序。", tags: ["社交型", "精致", "有节奏"] },
+  "A_BB": { name: "燕雀", emoji: "🐦", desc: "报春的候鸟，吃昆虫和种子，迁徙规律而从容。你做事有自己的时间表，不慌不忙，该来的时候来，该走的时候走，稳定里带着一种不声张的笃定。", tags: ["社交型", "候鸟", "从容"] },
+  "A_CA": { name: "喜鹊", emoji: "🐦", desc: "不挑食，荤素都吃，团结且敢跟猛禽叫板。你是社交场上的\"硬核友善派\"——对人热络，但底线清楚，真遇到事不会躲，该出头时敢出头。", tags: ["社交型", "勇敢", "杂食"] },
+  "A_CB": { name: "鹊鸲", emoji: "🐦", desc: "叫声动听但好斗，有固定的领地感。你待人温和、说话好听，但心里有一块不容侵犯的地盘，谁越界你会立刻亮爪子，只是亮得很有分寸。", tags: ["社交型", "有领地感", "有分寸"] },
+  "A_DA": { name: "家燕", emoji: "🐦", desc: "夏候鸟，年年准时归来，飞越千里也要回到老巢。你看起来随和好说话，其实对\"归属\"有很深的执念，走得再远，心里总有一个必须回去的地方。", tags: ["社交型", "恋家", "守时"] },
+  "A_DB": { name: "珠颈斑鸠", emoji: "🐦", desc: "咕咕咕的固定嗓音，城市草丛里的安稳住户。你不追求轰轰烈烈，日子按自己的节奏过，声音不大但一直在，是那种让人习惯了就离不开的存在。", tags: ["社交型", "安稳", "陪伴感"] },
+  "B_AA": { name: "绿头鸭", emoji: "🦆", desc: "游禽，适应力强，南北都能见到，荤素搭配。你是那种\"到哪儿都能过得不错\"的人，不挑食、不挑地方，但心里其实有一套自己的舒适标准，只是不轻易说出口。", tags: ["稳重型", "适应力强", "游禽"] },
+  "B_AB": { name: "红胸鸽", emoji: "🐦", desc: "吃毛虫和小甲虫，天冷就迁走，天暖再回来，规律而踏实。你接受生活的季节性，该收缩时收缩，该舒展时舒展，不硬扛也不逃避，节奏感是你最大的本事。", tags: ["稳重型", "规律", "踏实"] },
+  "B_BA": { name: "云雀（百灵）", emoji: "🐦", desc: "草原上的歌手，有固定的繁殖节奏，歌声是它的标志。你有自己雷打不动的习惯，也有一个愿意反复打磨的\"拿手活\"，别人记住你，往往就是因为这一手。", tags: ["稳重型", "有才艺", "节奏固定"] },
+  "B_BB": { name: "鹌鹑", emoji: "🐦", desc: "陆禽，地面活动，不折腾，稳稳过日子。你不爱出风头，也不羡慕天上的鸟，脚踏实地把眼前的事做好，是你最舒服的活法。", tags: ["稳重型", "脚踏实地", "低调"] },
+  "B_CA": { name: "戴胜", emoji: "🐦", desc: "攀禽但常在地面觅食，有独特的冠羽，认准一种活法就不太改。你有点\"怪\"，但怪得自成一派，不迎合、不解释，懂你的人自然觉得你有意思。", tags: ["稳重型", "独特", "自成一派"] },
+  "B_CB": { name: "啄木鸟", emoji: "🐦", desc: "攀禽，凿树找虫，日复一日在同一片林子里干活。你是典型的\"深耕型\"人格，认定一个领域就一头扎进去，重复对你不是折磨，而是精进的路径。", tags: ["稳重型", "深耕", "专注"] },
+  "B_DA": { name: "鸿雁", emoji: "🪿", desc: "冬候鸟，长途迁徙但路线固定，群体秩序感强。你重视秩序和集体，做事有章法，路上再远也不乱阵脚，是团队里那个\"定盘星\"式的存在。", tags: ["稳重型", "有秩序", "团队核心"] },
+  "B_DB": { name: "斑头雁", emoji: "🪿", desc: "在青海湖繁殖、藏南越冬，年年走同一条路。你的人生像一条清晰的航线，起点和终点都明确，不轻易改道，但也因此走得比谁都稳。", tags: ["稳重型", "路线清晰", "稳"] },
+  "C_AA": { name: "蜂鸟", emoji: "🐦", desc: "最小的鸟，悬停取蜜，不停歇地探索花丛。你精力旺盛、好奇心重，什么都想尝一口，停不下来，但也因此总能发现别人忽略的甜头。", tags: ["探索型", "好奇心", "精力旺"] },
+  "C_AB": { name: "鹦鹉", emoji: "🦜", desc: "攀禽，聪明好奇，食谱广，在哪儿都能找到乐子。你脑子转得快，学什么都快，社交和独处都能自洽，最大的本事是把无聊的日子过出花样。", tags: ["探索型", "聪明", "会找乐子"] },
+  "C_BA": { name: "翠鸟", emoji: "🐦", desc: "凿状喙，蹲守水边等鱼，专注一件事到极致。你不广撒网，看准了就死等，别人觉得你固执，你知道那叫\"值得\"。", tags: ["探索型", "专注", "极致"] },
+  "C_BB": { name: "夜鹭", emoji: "🐦", desc: "涉禽，白天静立如雕塑，入夜才活跃，有自己的时区。你和主流节奏不太一样，白天看着安静甚至有点闷，到了自己的时间段才真正活过来。", tags: ["探索型", "夜猫子", "自己的时区"] },
+  "C_CA": { name: "金雕", emoji: "🦅", desc: "猛禽，视觉发达，翱翔高空，不轻易出手但出手必中。你眼界高、耐心足，平时不声不响，真到关键时刻，一击就能定局。", tags: ["探索型", "眼界高", "一击必中"] },
+  "C_CB": { name: "猫头鹰", emoji: "🦉", desc: "猛禽，利钩喙，夜间独行猎手，安静但致命。你享受独处，不喜欢无效社交，夜里脑子最清醒，看起来疏离，其实只是把力气留给真正重要的事。", tags: ["探索型", "独行", "夜间清醒"] },
+  "C_DA": { name: "黑天鹅", emoji: "🦢", desc: "游禽，水面上从容游弋，看似优雅实则领地意识极强。你外表温和体面，内里边界感很强，不主动惹事，但谁动了你的水域，你会让对方记住。", tags: ["探索型", "优雅", "边界感强"] },
+  "C_DB": { name: "鸳鸯", emoji: "🦆", desc: "游禽，成对出现，有自己的固定水域，不轻易换地方。你重感情、认地方，一旦认定一个人或一处生活，就不太想折腾，安稳对你不是无聊，是奢侈。", tags: ["探索型", "重感情", "认地方"] },
+  "D_AA": { name: "白鹭", emoji: "🐦", desc: "涉禽，喙长颈长腿长，在水边什么小鱼小虾都能对付。你条件不差、手段灵活，环境怎么变都能找到吃的，看起来云淡风轻，其实很会审时度势。", tags: ["灵活型", "审时度势", "涉禽"] },
+  "D_AB": { name: "大白鹭", emoji: "🐦", desc: "南方冬候鸟，迁徙但适应力强，稻田河岸都能待。你不怕换环境，也不执着于某个固定答案，走到哪儿都能安顿下来，这种弹性是你最大的底气。", tags: ["灵活型", "弹性强", "候鸟"] },
+  "D_BA": { name: "丹顶鹤", emoji: "🐦", desc: "涉禽，姿态优美但挑剔，认准的湿地就不想换。你有品位、有标准，宁可少也不将就，别人觉得你难搞，你只是知道自己要什么。", tags: ["灵活型", "有品位", "不将就"] },
+  "D_BB": { name: "东方白鹳", emoji: "🐦", desc: "涉禽，\"三长\"特征，在固定湿地安静捕食。你低调、专注、有自己的节奏，不争不抢，但在自己的领域里，谁也别想轻易替代你。", tags: ["灵活型", "低调", "不可替代"] },
+  "D_CA": { name: "黑脸琵鹭", emoji: "🐦", desc: "冬候鸟，饭勺嘴在滩涂里扫食，走到哪吃到哪。你方法独特、不拘一格，别人看不上的地方你偏偏能挖出宝，灵活是你最锋利的工具。", tags: ["灵活型", "方法独特", "会挖宝"] },
+  "D_CB": { name: "青脚鹬", emoji: "🐦", desc: "旅鸟，迁徙路上短暂停留，不扎根但每站都吃得饱。你习惯阶段性的人生，不执着于\"永远\"，每一段都认真过，离开时也不拖泥带水。", tags: ["灵活型", "阶段性", "干脆"] },
+  "D_DA": { name: "柳莺", emoji: "🐦", desc: "鸣禽，小巧灵活，迁徙时到处可见，叫声细碎但无处不在。你不起眼但哪儿都有你，不争主角，却总在关键时刻出现，是那种\"少了你就不对\"的人。", tags: ["灵活型", "无处不在", "关键角色"] },
+  "D_DB": { name: "黄鹂", emoji: "🐦", desc: "夏候鸟，黑枕黄鹂羽色鲜明，叫声响亮，来了就让人记住。你出现的时候很亮眼，但不长期占场，来去都体面，留下的印象比停留的时间长得多。", tags: ["灵活型", "亮眼", "来去体面"] }
+};
+
+// ===== 状态 =====
+let currentQ = 0;
+let answers = new Array(25).fill(null);
+let finalBird = null;
+
+// ===== 页面切换 =====
+function showPage(id) {
+  ['home', 'quiz', 'result'].forEach(p => {
+    document.getElementById(p).style.display = 'none';
+  });
+  document.getElementById(id).style.display = 'block';
+  window.scrollTo(0, 0);
+}
+
+function startQuiz() {
+  currentQ = 0;
+  answers = new Array(25).fill(null);
+  showPage('quiz');
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q = questions[currentQ];
+  document.getElementById('qNumber').textContent = `第 ${currentQ + 1} 题`;
+  document.getElementById('qText').textContent = q.q;
+  document.getElementById('progressText').textContent = `${currentQ + 1} / ${questions.length}`;
+  document.getElementById('progressFill').style.width = `${((currentQ + 1) / questions.length) * 100}%`;
+
+  const wrap = document.getElementById('optionsWrap');
+  wrap.innerHTML = '';
+  q.opts.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'option' + (answers[currentQ] === opt.l ? ' selected' : '');
+    btn.innerHTML = `<span class="opt-letter">${opt.l}</span>${opt.t}`;
+    btn.onclick = () => selectOption(opt.l);
+    wrap.appendChild(btn);
+  });
+
+  document.getElementById('prevBtn').disabled = currentQ === 0;
+  document.getElementById('nextBtn').textContent = currentQ === questions.length - 1 ? '查看结果' : '下一题';
+  document.getElementById('nextBtn').disabled = answers[currentQ] === null;
+
+  const card = document.getElementById('questionCard');
+  card.classList.remove('fade-in');
+  void card.offsetWidth;
+  card.classList.add('fade-in');
+}
+
+function selectOption(letter) {
+  answers[currentQ] = letter;
+  const opts = document.querySelectorAll('.option');
+  const q = questions[currentQ];
+  opts.forEach((btn, i) => {
+    btn.classList.toggle('selected', q.opts[i].l === letter);
+  });
+  document.getElementById('nextBtn').disabled = false;
+}
+
+function nextQuestion() {
+  if (answers[currentQ] === null) return;
+  if (currentQ < questions.length - 1) {
+    currentQ++;
+    renderQuestion();
+  } else {
+    showResult();
+  }
+}
+
+function prevQuestion() {
+  if (currentQ > 0) {
+    currentQ--;
+    renderQuestion();
+  }
+}
+
+// ===== 结果计算 =====
+function calcResult() {
+  const counts = { A: 0, B: 0, C: 0, D: 0 };
+  answers.forEach(a => { if (a) counts[a]++; });
+
+  let maxLetter = 'A';
+  let maxCount = -1;
+  ['A', 'B', 'C', 'D'].forEach(l => {
+    if (counts[l] > maxCount) { maxCount = counts[l]; maxLetter = l; }
+  });
+
+  // 处理并列（看第25题）
+  const tieLetters = ['A', 'B', 'C', 'D'].filter(l => counts[l] === maxCount);
+  if (tieLetters.length > 1) {
+    const q25 = answers[24];
+    if (q25 && tieLetters.includes(q25)) {
+      maxLetter = q25;
+    }
+  }
+
+  // 根据第3题(索引2)和第22题(索引21)决定后缀
+  const q3 = answers[2] || 'A';
+  const q22 = answers[21] || 'A';
+  
+  // 第3题：A/D -> A, B -> B, C -> C
+  let suffix1 = 'A';
+  if (q3 === 'B') suffix1 = 'B';
+  else if (q3 === 'C') suffix1 = 'C';
+  else if (q3 === 'D') suffix1 = 'A'; // 或 D，此处按题库映射
+
+  // 第22题：A/C -> A, B/D -> B
+  let suffix2 = 'A';
+  if (q22 === 'B' || q22 === 'D') suffix2 = 'B';
+
+  const key = `${maxLetter}_${suffix1}${suffix2}`;
+  return birdDB[key] || birdDB["A_AA"]; // 兜底
+}
+
+function showResult() {
+  finalBird = calcResult();
+  document.getElementById('birdEmoji').textContent = finalBird.emoji;
+  document.getElementById('birdName').textContent = finalBird.name;
+  document.getElementById('birdDesc').textContent = finalBird.desc;
+  
+  const tagsWrap = document.getElementById('resultTags');
+  tagsWrap.innerHTML = '';
+  finalBird.tags.forEach(tag => {
+    const span = document.createElement('span');
+    span.className = 'tag';
+    span.textContent = tag;
+    tagsWrap.appendChild(span);
+  });
+
+  showPage('result');
+}
+
+function restart() {
+  showPage('home');
+}
+
+function shareResult() {
+  if (!finalBird) return;
+  const text = `我测出来是【${finalBird.name}】！${finalBird.desc}`;
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(() => {
+      alert('结果已复制到剪贴板，快去分享吧！');
+    }).catch(() => {
+      prompt('复制失败，请手动复制以下内容：', text);
+    });
+  } else {
+    prompt('请手动复制以下内容进行分享：', text);
+  }
+}
+</script>
+</body>
+</html>
